@@ -1,0 +1,16 @@
+{
+  "name": "vue",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "files": [
+    "src",
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "shaokang",
+  "license": "ISC"
+}
