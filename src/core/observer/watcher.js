@@ -1,24 +1,50 @@
-import {pushTarget, popTarget, DepTarget} from './dep';
+import {
+    pushTarget,
+    popTarget,
+    DepTarget
+} from './dep';
 
 export default class Watcher {
-    constructor(vm, expOrFn, cb) {
-        this.cb = cb;
+    constructor(vm, expOrFn, cb, options) {
         this.vm = vm;
-        this.expOrFn = expOrFn;
-        this.depIds = {};
 
+        if (options) {
+            this.deep = !!options.deep;
+            this.user = !!options.user;
+            this.lazy = !!options.lazy;
+            this.sync = !!options.sync;
+            this.before = options.before;
+        } else {
+            this.deep = this.user = this.lazy = this.sync = false;
+        }
+        this.cb = cb;
+        this.id = ++uid; // uid for batching
+        this.active = true;
+        this.post = false;
+        this.dirty = this.lazy; // for lazy watchers
+        this.deps = [];
+        this.newDeps = [];
+        this.depIds = new Set();
+        this.newDepIds = new Set();
         if (typeof expOrFn === 'function') {
             this.getter = expOrFn;
+        } else {
+            this.getter = parseGetter(expOrFn.trim());
+            if (!this.getter) {
+                this.getter = () => {};
+            }
         }
-        else {
-            this.getter = this.parseGetter(expOrFn.trim());
-        }
-
-        this.value = this.get();
+        this.value = this.lazy ? undefined : this.get();
     }
 
     update() {
-        this.run();
+        if (this.lazy) {
+            this.dirty = true
+        } else if (this.sync) {
+            this.run();
+        } else {
+            queueWatcher(this);
+        }
     }
 
     run() {
@@ -62,7 +88,7 @@ export default class Watcher {
         }
     }
 
-    update() {
+    evaluate() {
         this.value = this.get();
     }
 
