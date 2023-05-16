@@ -25,5 +25,25 @@ export function createElement(context, tag, data, children) {
             }
         }
     }
-    return VNode(tag, data, children, undefined, undefined, context);
+    
+    if (typeof tag === 'string') {
+        /* 更细粒度的判断，见源码
+        if (config.isReservedTag(tag)) {
+            vnode = new VNode(config.parsePlatformTagName(tag), data, children, undefined, undefined, context);
+        } else if (
+          (!data || !data.pre) &&
+          isDef((Ctor = resolveAsset(context.$options, 'components', tag)))
+        ) {
+          // component
+          vnode = createComponent(Ctor, data, context, children, tag)
+        } else {
+          vnode = new VNode(tag, data, children, undefined, undefined, context)
+        }
+        */
+        vnode = new VNode(tag, data, children, undefined, undefined, context)
+    } else {
+        // createComponent 构造 Vue 的子类，执行 Vue 实例初始化逻辑（this._init）。安装组件钩子函数，实例化 vnode 并返回（组件 vnode 是没有 children）。
+        vnode = createComponent(tag as any, data, context, children)
+    }
+    return vnode;
 }
